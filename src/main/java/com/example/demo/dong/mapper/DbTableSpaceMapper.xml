@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="DbTableSpaceMapper">
+	
+	<select id="selectTableSpace" resultType="String">
+		/* selectTableSpace 쿼리 */
+		 SELECT
+		 	TABLESPACE_NAME
+		 FROM
+		 	DBA_TABLESPACES
+	
+	</select>
+
+
+	<select id="selectDbTablespaceChart" parameterType="String" resultType="DbTablespaceChartDomain">
+		/* selectDbTablespaceChart */
+		SELECT  
+             b.tablespace_name AS tablespaceName
+             , b.MAXBYTES / 1024 AS maxbytes
+             , b.bytes / 1024 AS bytes
+             , ((b.bytes - SUM(NVL(a.bytes,0)))) / 1024 AS userBytes
+             , TRUNC((SUM(NVL(a.bytes,0)) / (b.bytes)) * 100, 3)  AS freePer
+             , TRUNC((((b.bytes - SUM(NVL(a.bytes,0)))) / 1024) / (b.bytes / 1024) * 100, 3)  AS userPer
+             , TRUNC((SUM(NVL(b.USER_BYTES,0)) / b.MAXBYTES) * 100, 3) AS userPerTot
+             , TRUNC((SUM(NVL(b.BYTES,0)) / b.MAXBYTES) * 100, 3) AS bytePerTot
+      	FROM   
+      		DBA_FREE_SPACE a
+      		, DBA_DATA_FILES b
+      	WHERE 
+      		a.file_id(+) = b.file_id 
+      	<!-- AND b.TABLESPACE_NAME = #{tablespaceName} -->
+      	GROUP BY 
+      		b.tablespace_name
+      		, b.file_name
+      		, b.bytes
+      		, b.MAXBYTES
+      	ORDER BY 
+      		b.tablespace_name
+		
+	</select>
+	
+	<select id="selectFileChart" resultType="DbTablespaceChartDomain">
+		/* selectDbTablespaceChart */
+		SELECT  
+             b.tablespace_name AS tablespaceName
+             , b.MAXBYTES / 1024 AS maxbytes 
+             , b.bytes / 1024 AS bytes
+             , ((b.bytes - SUM(NVL(a.bytes,0)))) / 1024 AS userBytes
+             , TRUNC((SUM(NVL(a.bytes,0)) / (b.bytes)) * 100, 3)  AS freePer
+             , TRUNC((((b.bytes - SUM(NVL(a.bytes,0)))) / 1024) / (b.bytes / 1024) * 100, 3)  AS userPer
+             , TRUNC((SUM(NVL(b.USER_BYTES,0)) / b.MAXBYTES) * 100, 3) AS userPerTot
+             , TRUNC((SUM(NVL(b.BYTES,0)) / b.MAXBYTES) * 100, 3) AS bytesPerTot
+      	FROM   
+      		DBA_FREE_SPACE a
+      		, DBA_DATA_FILES b
+      	WHERE 
+      		a.file_id(+) = b.file_id 
+      	<!-- AND b.TABLESPACE_NAME = #{tablespaceName} -->
+      	GROUP BY 
+      		b.tablespace_name
+      		, b.file_name
+      		, b.bytes
+      		, b.MAXBYTES
+      	ORDER BY 
+      		b.tablespace_name
+		
+	</select>
+	
+	<select id="selectDbUsers" parameterType="String" resultType="String">
+		/* selectDbUsers 쿼리 */
+		SELECT 
+			USERNAME
+			
+		FROM 
+			DBA_USERS
+		WHERE 
+			DEFAULT_TABLESPACE = #{tablespaceName}
+	</select>
+	
+	
+	<!-- <select id="selectObjList" parameterType="hashMap" resultType="String">
+		<if test='objType == "TABLE"'>
+			SELECT 
+				OWNER
+ 				, TALBE_NAME	AS tableName
+				, TABLESPACE_NAME	AS tablespaceName
+			FROM 
+				DBA_TABLES 
+			WHERE 
+				OWNER = #{userName} 
+		</if>
+		<if test='objType == "INDEX" '>
+			SELECT 
+				OWNER
+				, INDEX_NAME	AS indexName
+				, INDEX_TYPE	AS indexType
+				, TABLE_OWNER	AS tableOwner
+				, TABLE_NAME	AS tableName
+				, TABLE_TYPE	AS tableType
+				, UNIQUENESS
+				, COMPERSSION 
+			FROM 
+				DBA_INDEXES 
+			WHERE 
+				OWNER = #{userName}
+		</if>
+		<if test='objType == "PROCEDURE" '>
+			SELECT 
+				OBJECT_NAME
+			FROM 
+				DBA_PROCEDURES 
+			WHERE 
+				OWNER = #{userName}
+			AND 
+				OBJECT_TYPE = #{objType}
+		</if>
+		<if test='objType == "VIEW" '>
+			SELECT 
+				VIEW_NAME
+			FROM 
+				DBA_VIEWS 
+			WHERE 
+				OWNER = #{userName}
+		</if>
+		<if test='objType == "FUNCTION" '>
+			SELECT 
+				OBJECT_NAME
+			FROM 
+				DBA_PROCEDURES 
+			WHERE 
+				OWNER = #{userName}
+			AND 
+				OBJECT_TYPE = #{objType}
+		</if>
+		
+		 
+	
+	</select> -->
+	
+	<select id="selectObjList" parameterType="String" resultType="DbColumns">
+		/* selectObjList 쿼리 */
+		
+		SELECT 
+			TABLESPACE_NAME	AS tablespaceName
+			, SEGMENT_TYPE	AS segmentType
+			, COUNT(SEGMENT_TYPE)	AS objCnt 
+		FROM 
+			DBA_SEGMENTS 
+		WHERE 
+			TABLESPACE_NAME = #{tablespaceName} 
+		GROUP BY 
+			SEGMENT_TYPE, TABLESPACE_NAME
+		
+		
+	
+	</select>
+
+
+
+</mapper>

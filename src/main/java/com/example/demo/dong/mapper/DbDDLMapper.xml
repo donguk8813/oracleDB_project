@@ -1,0 +1,345 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- <mapper namespace="com.example.demo.dong.mapper.DbDDLMapper"> -->
+<mapper namespace="DbDDLMapper">
+
+<resultMap type="DDLDomain" id="DDLDomain">
+	<result property="ddl" column="ddl" jdbcType="CLOB" javaType="java.lang.String" />
+	<result property="columns" column="columns" jdbcType="CLOB" javaType="java.lang.String" />
+	<!--  <result property="OWNER" column="owner" jdbcType="varchar" javaType="java.lang.String" />
+	<result property="TABLE_NAME" column="tableName" jdbcType="varchar" javaType="java.lang.String" />
+	<result property="COLUMN_NAME" column="columnName" jdbcType="varchar" javaType="java.lang.String" />
+	<result property="DATA_TYPE" column="dataType" jdbcType="varchar" javaType="java.lang.String" />
+	<result property="DATA_LENGTH" column="dataLength" jdbcType="varchar" javaType="java.lang.String" />
+	<result property="DATA_PRECISION" column="dataPrecision" jdbcType="varchar" javaType="java.lang.String" />
+	<result property="DATA_SCALE" column="dataScale" jdbcType="varchar" javaType="java.lang.String" />
+	<result property="COLUMN_ID" column="columnId" jdbcType="varchar" javaType="java.lang.String" /> -->
+</resultMap>
+
+
+<select id="selectDbUsers" resultType="DbUsersDomain">
+		SELECT 
+			USERNAME
+			, DEFAULT_TABLESPACE as defaultTableSpace
+		FROM 
+			DBA_USERS
+		WHERE 
+			ACCOUNT_STATUS = 'OPEN'
+	</select>
+	
+	<select id="selectDbUserObjType" parameterType="String" resultType="String">
+		SELECT 
+			OBJECT_TYPE 
+		FROM 
+			DBA_OBJECTS
+		WHERE 
+			OBJECT_TYPE IN ('TYPE', 'TABLE', 'INDEX', 'SEQUENCE', 'VIEW', 'CONSTRAINT', 'PACKAGE', 'PACKAGE_BODY','PROCEDURE', 'FUNCTION')
+		AND 
+			OWNER = #{userName}
+		GROUP BY OBJECT_TYPE
+		UNION ALL
+		SELECT
+		    'CONSTRAINT'
+		FROM 
+		    DUAL 
+
+	</select>
+
+	<select id="selectObjTypeList" parameterType="hashMap" resultType="String">
+		<if test='objType == "TABLE"'>
+			SELECT 
+				OWNER
+				, TALBE_NAME
+				, TABLESPACE_NAME
+			FROM 
+				DBA_TABLES 
+			WHERE 
+				OWNER = #{userName} 
+		</if>
+		<if test='objType == "INDEX" '>
+			SELECT 
+				OWNER
+				, INDEX_NAME
+				, INDEX_TYPE
+				, TABLE_OWNER
+				, TABLE_NAME
+				, TABLE_TYPE
+				, UNIQUENESS
+				, COMPERSSION
+			FROM 
+				DBA_INDEXES 
+			WHERE 
+				OWNER = #{userName}
+		</if>
+		<if test='objType == "PROCEDURE" '>
+			SELECT 
+				OBJECT_NAME
+			FROM 
+				DBA_PROCEDURES 
+			WHERE 
+				OWNER = #{userName}
+			AND 
+				OBJECT_TYPE = #{objType}
+		</if>
+		<if test='objType == "VIEW" '>
+			SELECT 
+				VIEW_NAME
+			FROM 
+				DBA_VIEWS 
+			WHERE 
+				OWNER = #{userName}
+		</if>
+		<if test='objType == "FUNCTION" '>
+			SELECT 
+				OBJECT_NAME
+			FROM 
+				DBA_PROCEDURES 
+			WHERE 
+				OWNER = #{userName}
+			AND 
+				OBJECT_TYPE = #{objType}
+		</if>
+		
+		 
+	
+	</select>
+	
+	<select id="selectObjDDL" parameterType="hashMap" resultType="String">
+		SELECT 
+			TO_CHAR(dbms_metadata.get_ddl(#{objType}, #{objTypeName}, #{userName})) as ddl
+		FROM 
+			DUAL
+	</select>
+	
+	<select id="selectObjectScript" parameterType="hashMap" resultMap="DDLDomain">
+		/* selectObjectScript 쿼리 */
+		SELECT 
+			OWNER
+			, OBJECT_NAME AS objectName 
+			, dbms_metadata.get_ddl(OBJECT_TYPE, OBJECT_NAME, OWNER) AS ddl
+		FROM 
+			DBA_OBJECTS 
+		WHERE 
+			OWNER = #{userName}
+		AND 
+			OBJECT_TYPE = #{objType}
+		AND
+			OBJECT_NAME NOT LIKE 'SYS_IOT_OVER%'	
+		AND 
+			OBJECT_NAME NOT LIKE 'MGMT_DELTA_SUMMARY%'
+		AND 
+			OBJECT_NAME NOT LIKE 'HS_PARTITION_COL_%'
+	
+	
+	</select>
+	
+	
+	
+	<select id="selectTableScript" parameterType="hashMap" resultType="DDLDomain">
+		/* selectTableScript 쿼리 */
+		
+		SELECT 
+			OWNER
+			, TABLE_NAME AS tableName
+			, COLUMN_NAME AS columnName
+			, DATA_TYPE AS dataType
+			, DATA_LENGTH AS dataLength
+			, DATA_PRECISION AS dataPrecision
+			, DATA_SCALE AS dataScale
+			, NULLABLE 
+			, COLUMN_ID AS columnId
+			, COLUMN_NAME || ' ' || DATA_TYPE || DECODE(DATA_TYPE, 'NUMBER', DECODE(DATA_PRECISION, NULL, NULL, '('|| DATA_PRECISION || ',') || DECODE(DATA_SCALE, NULL, NULL, DATA_SCALE || ')') , 'VARCHAR2', '(' || DATA_LENGTH || ')') 
+                || DECODE(NULLABLE, 'N', ' NOT NULL') || DECODE(COLUMN_ID, MAX(COLUMN_ID) OVER(), NULL, ',') 
+            AS DDL
+		FROM
+			DBA_TAB_COLUMNS
+		WHERE
+			OWNER = #{userName}
+		AND 
+			TABLE_NAME = #{objTypeName}
+		ORDER BY 
+			COLUMN_ID ASC
+	
+	
+	</select>
+
+	<select id="selectIndexScript" parameterType="hashMap" resultType="DDLDomain">
+		/* selectIndexScript 쿼리 */
+		SELECT 
+		    OWNER
+		    , TABLE_NAME AS tableName
+			, OBJECT_NAME AS objectName 
+			, dbms_metadata.get_ddl(OBJECT_TYPE, OBJECT_NAME, OWNER) AS ddl
+		FROM 
+			DBA_OBJECTS , 
+			(
+				SELECT 
+					TABLE_NAME
+					, INDEX_NAME 
+				FROM 
+					DBA_INDEXES 
+				WHERE 
+					OWNER = #{userName}
+				) A 
+		WHERE 
+			OWNER = #{userName}
+		AND 
+			OBJECT_TYPE = #{objType}
+		AND 
+            OBJECT_NAME = INDEX_NAME
+		GROUP BY 
+			OWNER
+			, OBJECT_NAME
+			, OBJECT_TYPE
+			, TABLE_NAME
+	</select>
+	
+	<select id="selectSequenceScript" parameterType="hashMap" resultType="DDLDomain">
+		/* selectSequenceScript 쿼리 */
+		SELECT 
+			SEQUENCE_NAME
+			, SEQUENCE_NAME
+			, TO_CHAR(dbms_metadata.get_ddl(#{objType}, SEQUENCE_NAME, SEQUENCE_OWNER)) AS DDL 
+		FROM 
+			DBA_SEQUENCES 
+		WHERE 
+			SEQUENCE_OWNER = #{userName}
+	</select>
+	
+	<select id="selectConstraintType" parameterType="hashMap" resultType="DDLDomain">
+		/* "selectConstraintType	" 쿼리 */
+		SELECT
+			CONSTRAINT_NAME AS constraintName
+			, CONSTRAINT_TYPE AS constraintType
+			, TABLE_NAME AS tableName
+		FROM
+			DBA_CONSTRAINTS
+		WHERE
+			OWNER = #{userName}
+		AND 
+			TABLE_NAME = #{tableName}
+	
+	</select>
+	
+
+	<select id="selectConstraintScript" parameterType="hashMap" resultType="DDLDomain">
+		/* selectConstraintScript 쿼리 */
+	
+	
+		WITH CONS_COLUMNS AS (
+		    SELECT 
+		        OWNER
+		        , CONSTRAINT_NAME
+		        , TABLE_NAME
+		        , COLUMN_NAME
+		        , POSITION
+		    FROM 
+		    	DBA_CONS_COLUMNS 
+		    WHERE 
+		    	OWNER =  #{userName} 
+		    AND 
+		    	TABLE_NAME = #{objTypeName}
+		)
+		SELECT A.OWNER
+			, A.CONSTRAINT_NAME AS constraintName
+			, CONSTRAINT_TYPE AS constraintType
+			, A.TABLE_NAME AS tableName
+			, B.COLUMN_NAME AS columnName
+			, A.R_OWNER AS rOwner
+			, A.R_CONSTRAINT_NAME AS rConstraintName
+			, 'ALTER TABLE ' || A.OWNER || '.' || A.TABLE_NAME || ' ADD
+(
+			    CONSTRAINT ' || A.CONSTRAINT_NAME || 
+			    CASE 
+			    WHEN A.CONSTRAINT_TYPE = 'R' THEN '
+			    FOREIGN KEY (' || B.COLUMN_NAME || ')
+			    REFERENCES ' || A.OWNER || '.' 
+			    || (SELECT 
+			    		TABLE_NAME 
+			    	FROM 
+			    		DBA_CONSTRAINTS 
+			    	WHERE 
+			    		OWNER = A.OWNER 
+			    	AND 
+			    		CONSTRAINT_NAME = A.R_CONSTRAINT_NAME)
+			    || '(' || B.COLUMN_NAME || ')'
+			    WHEN A.CONSTRAINT_TYPE = 'P' THEN '
+			    PRIMARY KEY(' || B.COLUMN_NAME || ')'
+			        END 
+			    || '
+);'
+			    AS DDL
+			FROM 
+				DBA_CONSTRAINTS A
+				, CONS_COLUMNS B 
+			WHERE 
+				A.OWNER = B.OWNER 
+			AND 
+				A.CONSTRAINT_NAME = B.CONSTRAINT_NAME
+			ORDER BY 
+                CONSTRAINT_TYPE 
+	
+	
+		
+	</select>
+
+
+
+	
+	
+	<select id="selectIndexCheck" parameterType="hashMap" resultType="DDLDomain">
+		/* selectIndexCheck 쿼리 */
+		
+		SELECT
+			PROPERTY
+		    , OWNER
+		    , INDEXES.INDEX_NAME	AS indexName
+		    , INDEXES.UNIQUENESS AS uniqueness
+ 		    , COLUMNS
+		    , TABLE_NAME	AS tableName
+		    , TABLESPACE_NAME	AS tablespaceName 
+		    , CASE 
+		    	WHEN PROPERTY != 4097 THEN 'CREATE ' || DECODE(UNIQUENESS, 'UNIQUE', 'UNIQUE INDEX ', 'INDEX ') || OWNER || '.' || INDEXES.INDEX_NAME || ' ON ' || OWNER || '.' || TABLE_NAME || ' (' || COLUMNS || ') TABLESPACE ' || TABLESPACE_NAME || ';'
+		     	ELSE NULL
+		     	END AS DDL
+		FROM  
+		    SYS.IND$ IND
+		INNER JOIN 
+		    ( SELECT 
+		        INDEX_NAME
+		        , OBJECT_ID
+		        , COLUMNS
+		        , OWNER
+		        , TABLE_NAME
+		      FROM 
+		        DBA_OBJECTS OBJECTS 
+		      INNER JOIN 
+		        ( SELECT 
+		            INDEX_NAME
+		            , TABLE_NAME
+		            , WM_CONCAT(COLUMN_NAME) AS COLUMNS
+		          FROM 
+		            DBA_IND_COLUMNS 
+		          WHERE 
+		            INDEX_OWNER = #{userName}
+		          AND TABLE_NAME = #{objTypeName}
+		          GROUP BY INDEX_NAME, TABLE_NAME) IND_COL
+		      ON 
+		        OBJECTS.OBJECT_NAME IN IND_COL.INDEX_NAME ) OBJ_IND_COL
+		ON 
+		    OBJ# IN OBJ_IND_COL.OBJECT_ID
+		INNER JOIN 
+		    ( SELECT 
+		        INDEX_NAME
+		        , UNIQUENESS
+		        , TABLESPACE_NAME 
+		      FROM 
+		        DBA_INDEXES) INDEXES
+		ON 
+		    OBJ_IND_COL.INDEX_NAME = INDEXES.INDEX_NAME
+	
+	</select>
+
+	
+	
+</mapper>

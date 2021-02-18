@@ -1,0 +1,191 @@
+@charset "UTF-8";
+
+
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	margin: 0;
+	width: 100%;
+	margin: 20px auto;
+	heigth: 100%;
+}
+/* Style the header */
+.header {
+	background-color: #f1f1f1;
+	padding: 20px;
+	text-align: center;
+}
+/* Style the top navigation bar */
+.topnav {
+	overflow: hidden;
+	background-color: #333;
+}
+/* Style the topnav links */
+.topnav a {
+	float: left;
+	display: block;
+	color: #f2f2f2;
+	text-align: center;
+	padding: 14px 16px;
+	text-decoration: none;
+}
+/* Change color on hover */
+.topnav a:hover {
+	background-color: #ddd;
+	color: black;
+}
+
+
+/* Create three unequal columns that floats next to each other */
+.column {
+	float: left;
+	padding: 20px;
+}
+/* Left and right column */
+.column.side {
+	width: 30%;
+	/* margin-right: 20px; */
+}
+/* Middle column */
+.column.middle {
+	width: 50%;
+}
+
+.column.middle h2{
+	font-size: 25px;
+}
+
+.column.middle p {
+	font-size: 20px;
+	
+}
+
+/* Clear floats after the columns */
+.row:after {
+	content: "";
+	display: table;
+	clear: both;
+}
+/* Responsive layout - makes the three columns stack on top of each other instead of next to each other */
+@media screen and (max-width: 600px) {
+	.column.side, .column.middle {
+		width: 100%;
+	}
+}
+/* Style the footer */
+.footer {
+	background-color: #f1f1f1;
+	padding: 10px;
+	text-align: center;
+}
+
+li {
+	list-style: none;
+}
+
+#lnb {
+	position: relative;
+	width: 350px;
+}
+
+#lnb h1 {
+	height: 40px;
+	text-align: center;
+	color: #fff;
+	font-size: 20px;
+	line-height: 1.8;
+	letter-spacing: -2px;
+	background: #d71a21;
+}
+
+#lnb>ul {
+	
+}
+
+#lnb ul li {
+	border-bottom: 1px solid #dcdcdc;
+	font-size: 20px;
+}
+
+#lnb ul li a {
+	display: block;
+	padding: 14px 35px 14px 15px;
+	color: inherit;
+	font-size: 20px;
+	background: #f5f2ec
+		url(https://t1.daumcdn.net/cfile/tistory/2417E04D570C5C0225) no-repeat
+		95% 15px;
+}
+
+
+#lnb ul li a:hover {
+	color: #d91c1b;
+	background-color: #f5f2ec;
+}
+
+#lnb ul li.on a {
+	color: #d91c1b;
+	background: #f5f2ec
+		url('https://t1.daumcdn.net/cfile/tistory/257B794F570C5C0D1A')
+		no-repeat 95% 14px;
+}
+
+#lnb ul li ul {
+	display: none;
+}
+
+#lnb>ul>li>ul>li>a {
+	display: block;
+	padding: 0 25px 14px 14px;
+	color: #inherit;
+	font-size: 12px;
+	background: #f5f2ec
+		url('https://t1.daumcdn.net/cfile/tistory/2417E04D570C5C0225')
+		no-repeat 95% 1px;
+}
+
+#lnb>ul>li>ul>li>a {
+	color: #d91c1b;
+	background-color: #f5f2ec;
+}
+
+#lnb>ul>li>ul>li.on a {
+	color: #d91c1b;
+	background: #f5f2ec
+		url('https://t1.daumcdn.net/cfile/tistory/257B794F570C5C0D1A')
+		no-repeat 95% 3px;
+}
+
+#lnb>ul>li>ul li ul {
+	display: none;
+	padding-bottom: 8px;
+	background-color: #f5f2ec;
+	overflow: scroll;
+	height: 100%;
+}
+
+#lnb>ul>li>ul li li a {
+	display: block;
+	padding: 0 25px 10px 22px;
+	color: #666;
+	font-size: 12px;
+	background-color: #f5f2ec;
+}
+
+#lnb>ul>li>ul>li li a:hover {
+	color: #d91c1b;
+}
+
+#lnb>ul li.noDepth a {
+	background-image: none !important;
+}
+
+#lnb .show {
+	display: block;
+
+}
+

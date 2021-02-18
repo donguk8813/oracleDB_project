@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+  <!-- <properties resource="config/jdbc.properties" /> -->
+  <settings>
+    <setting name="cacheEnabled" value="true" />
+    <setting name="useGeneratedKeys" value="true" />
+    <setting name="defaultExecutorType" value="REUSE" />
+    <setting name="defaultStatementTimeout" value="3000" />
+  </settings>
+ 
+  <typeAliases>
+    <package name="com.example.demo.dong.domain" />
+	<!-- <typeAlias type="com.example.demo.dong.domain.DDLDomain" alias="DDLDomain"></typeAlias> -->
+   
+  </typeAliases>
+  <!--  <typeHandlers>
+        <typeHandler handler="com.example.demo.dong.handler.LongHandler" javaType="String" jdbcType="LONGVARCHAR"/>
+    </typeHandlers> -->
+  
+  <mappers>
+  	<mapper resource="com/example/demo/dong/mapper/DbDDLMapper.xml"/>
+  	<mapper resource="com/example/demo/dong/mapper/DbTableSpaceMapper.xml"/>  
+  	<!-- <mapper resource="com/example/demo/dong/mapper/**.xml"/> -->
+  
+    <!-- <mapper resource="core/sql/a.xml" />
+    <mapper resource="core/sql/b.xml" />
+    <mapper resource="core/sql/c.xml" />
+    <mapper resource="plugin/member/sql/d.xml" />
+    <mapper resource="plugin/member/sql/e.xml" />
+    <mapper resource="plugin/member/sql/f.xml" /> -->
+  </mappers>
+  
+</configuration>
