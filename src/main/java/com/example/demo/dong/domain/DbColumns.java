@@ -7,6 +7,6 @@ public class DbColumns {
 
 	private String tablespaceName;
 	private String segmentType;
-	private int objCnt;
+	private int segmentCnt;
 
 }

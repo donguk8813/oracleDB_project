@@ -140,7 +140,7 @@
 	<select id="selectObjList" parameterType="String" resultType="DbColumns">
 		/* selectObjList 쿼리 */
 		
-		SELECT 
+		<!-- SELECT 
 			TABLESPACE_NAME	AS tablespaceName
 			, SEGMENT_TYPE	AS segmentType
 			, COUNT(SEGMENT_TYPE)	AS objCnt 
@@ -149,7 +149,36 @@
 		WHERE 
 			TABLESPACE_NAME = #{tablespaceName} 
 		GROUP BY 
-			SEGMENT_TYPE, TABLESPACE_NAME
+			SEGMENT_TYPE, TABLESPACE_NAME -->
+			
+			SELECT DISTINCT
+			    tablespaceName
+			    , segmentType
+			    , SUM(segmentCnt) OVER(PARTITION BY segmentType) segmentCnt
+			FROM 
+			(SELECT 
+			            TABLESPACE_NAME	AS tablespaceName
+			            , SEGMENT_TYPE
+			            , COUNT(SEGMENT_TYPE)	AS segmentCnt
+			            , CASE WHEN SEGMENT_TYPE LIKE '%TABLE%' THEN 'TABLE'
+			                        WHEN SEGMENT_TYPE LIKE '%INDEX%' THEN 'INDEX'
+			                        WHEN SEGMENT_TYPE LIKE '%LOB%' THEN 'LOB'
+			                END segmentType
+			        FROM 
+			            DBA_SEGMENTS 
+			        WHERE 
+			            TABLESPACE_NAME = #{tablespaceName} 
+			        GROUP BY 
+			            SEGMENT_TYPE
+			            , TABLESPACE_NAME           
+			) A
+			WHERE segmentType IS NOT NULL
+			GROUP BY 
+			    tablespaceName
+			    , segmentType 
+			    , segmentCnt
+			    , SEGMENT_TYPE
+			
 		
 		
 	

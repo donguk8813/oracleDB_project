@@ -28,7 +28,7 @@
         
         <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
         <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-
+		
         <!-- <script type="text/javascript" src="plugins/jqplot.pieRenderer.min.js"></script> -->
 
         
@@ -77,7 +77,7 @@
                                 <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
                              </a>
                              <a class="nav-link collapsed" href="javascript:void(0)"  id="Tablespace_obj" >
-                                <div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div>Tablespace 객체 확인
+                                <div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div>Tablespace별 segment 현황
                                 <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
                              </a>
                             

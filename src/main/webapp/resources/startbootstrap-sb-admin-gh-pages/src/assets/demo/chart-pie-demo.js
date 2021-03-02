@@ -32,6 +32,39 @@ $(document).ready(function() {
 	});
 	
 	
+	/* // Load the Visualization API and the corechart package.
+    google.charts.load('current', {'packages':['corechart']});
+
+    // Set a callback to run when the Google Visualization API is loaded.
+    google.charts.setOnLoadCallback(drawChart);
+
+    // Callback that creates and populates a data table,
+    // instantiates the pie chart, passes in the data and
+    // draws it.
+    function drawChart() {
+
+      // Create the data table.
+      var data = new google.visualization.DataTable();
+      data.addColumn('string', 'Topping');
+      data.addColumn('number', 'Slices');
+      data.addRows([
+        ['Mushrooms', 3],
+        ['Onions', 1],
+        ['Olives', 1]
+        
+      ]);
+
+      // Set chart options
+      var options = {'title':'How Much Pizza I Ate Last Night',
+                     'width':400,
+                     'height':300};
+
+      // Instantiate and draw our chart, passing in some options.
+      var chart = new google.visualization.PieChart(document.getElementById('chart_div'));
+      chart.draw(data, options);
+    }*/
+	
+	
 	
 });
 ;(function($){ 
@@ -288,7 +321,7 @@ $(document).ready(function() {
 		
 		for(var i=0; i<data.chartDomain.length; i++){
 			str = '</br><ol class="breadcrumb mb-4">'
-				+ 		'<li class="breadcrumb-item active" >UserName : ' + data.chartDomain[i].tablespaceName
+				+ 		'<li class="breadcrumb-item active" >TABLESPACE_NAME : ' + data.chartDomain[i].tablespaceName
 				+			'<div id="userName"></div>'
 				+		'</li>'
 				+	'</ol>'
@@ -296,7 +329,7 @@ $(document).ready(function() {
 				+ 			'<div class="col-lg-6">'
 				+				'<div class="card mb-4">'
 				+ 					'<div class="card-header">'
-				+						'<i class="fas fa-chart-pie mr-1"></i>실제 사용량'
+				+						'<i class="fas fa-chart-pie mr-1"></i>실제 할당된 사용량'
            		+					'</div>'
            		+					'<div class="card-body myDonutChart"><canvas id="myDonutChart_'+i+'" width="100%" height="50"></canvas></div>'
            		+				'</div>'
@@ -309,12 +342,13 @@ $(document).ready(function() {
 				+                   '<div class="card-body myAllDonutChart"><canvas id="myAllDonutChart_'+i+'" width="100%" height="50"></canvas></div>'
 				+               '</div>'
 				+           '</div>'
-				+      '</div></br>';
+				+      '</div></br><div id="chart_div_'+i+'"></div>';
 			
 			div.append(str);
 			
 
 			var ctx = $("#myDonutChart_"+i);
+			var test = $("#test_"+i);
 			var myPieChart = new Chart(ctx, {
 			  type: 'doughnut',
 			  data: {
@@ -325,6 +359,38 @@ $(document).ready(function() {
 			    }],
 			  },
 			});
+			
+			// Load the Visualization API and the corechart package.
+		    google.charts.load('current', {'packages':['corechart']});
+
+		    // Set a callback to run when the Google Visualization API is loaded.
+		    google.charts.setOnLoadCallback(drawChart);
+
+		    // Callback that creates and populates a data table,
+		    // instantiates the pie chart, passes in the data and
+		    // draws it.
+		    function drawChart() {
+		    	console.log("여기")
+		      // Create the data table.
+		      var data = new google.visualization.DataTable();
+		      data.addColumn('string', 'Topping');
+		      data.addColumn('number', 'Slices');
+		      data.addRows([
+		        ['실제 사용량', 3],
+		        ['남은 사용량', 1],
+		        ['Olives', 1]
+		        
+		      ]);
+
+		      // Set chart options
+		      var options = {'title':'How Much Pizza I Ate Last Night',
+		                     'width':400,
+		                     'height':300};
+
+		      // Instantiate and draw our chart, passing in some options.
+		      var chart = new google.visualization.PieChart(document.getElementById('chart_div_'+i));
+		      chart.draw(data, options);
+		    }
 			
 			var ctx_all = $("#myAllDonutChart_"+i);
 			var freePer = 100 - (Number(data.chartDomain[i].userPerTot) + Number(data.chartDomain[i].bytesPerTot));
@@ -342,14 +408,14 @@ $(document).ready(function() {
 			});
 			
 		}
-		
+		 
 
 	};
 	
 	
 	$.addColumn = function(data) {
 		
-		$("#h1").text("Tablespace 객체 확인");
+		$("#h1").text("Tablespace별 segment 현황");
 		$("#div_fileChk").empty();
 		
 		var dbTablespace = data.dbTablespace;
@@ -370,25 +436,34 @@ $(document).ready(function() {
 					     +      '<div class="card-body">'
 					     +          '<div class="table-responsive">'
 					     +              '<table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">'
+					     +					'<colgroup>'
+					     +						'<col width="20%">'
+					     +						'<col width="40%">'
+					     +						'<col width="40%">'
+					     +					'</colgroup>'
 					     +                  '<thead>'
 					     +                       '<tr id="objListTr">'
-					     +                          '<th>TABLESPACE_NAME</th>'
-					     +                          '<th>SEGMENT_TYPE</th>'
-					     +                          '<th>CNT</th>'
+					     +                          '<th>TABLE</th>'
+					     +                          '<th>INDEX</th>'
+					     +                          '<th>LOB</th>'
 					     +                      '</tr>'
 					     +                  '</thead>'
-					     +                  '<tbody id="tbody">'
-					   ;
-			
-			for(var j=0; j<columns.length; j++) {				
-				    str  +=   				'<tr>'
-				    	 + 							'<td>'+columns[j].tablespaceName+'</td>'
-					     +   						'<td>'+columns[j].segmentType+'</td>'
-					     +   						'<td>'+columns[j].objCnt+'</td>'
-					     +						'</tr>';	
+					     +                  '<tbody id="tbody">' 
+					     +						'<tr>' ;
+	
+			if(columns.length == 0) {
+				str  +=   					'<td>'+0+'</td>'
+			     	  +   						'<td>'+0+'</td>'
+			          +   						'<td>'+0+'</td>' ;
+				
+			} else {
+				for(var j=0; j<columns.length; j++) {				
+				    str  +=   					'<td>'+columns[j].segmentCnt+'</td>';
+				}
 			}
 			
-			str +=                		'</tbody>'
+			str +=       						'</tr>';	        		
+				 +							'</tbody>'
 			     +              		'</table>'
 			     +          		'</div>'
 			     +     		 '</div>'
